@@ -86,8 +86,9 @@ A sustainable fashion platform that enables users to exchange unused clothing th
 ### Verify Installation
 
 - **API Health**: http://localhost:8000/health
-- **API Documentation**: http://localhost:8000/docs
-- **Database UI**: http://localhost:8080 (pgAdmin: admin@rewear.com / admin123)
+- **Swagger UI**: http://localhost:8000/docs (Interactive API testing)
+- **ReDoc**: http://localhost:8000/redoc (Alternative documentation)
+- **Database UI**: http://localhost:8080 (pgAdmin)
 
 ## 🏗️ Project Architecture
 
