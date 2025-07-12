@@ -13,4 +13,5 @@ passlib==1.7.4
 redis==5.0.1
 pillow==10.1.0
 websockets==12.0
-pydantic-settings==2.1.0Pillow==10.1.0
+pydantic-settings==2.1.0
+Pillow==10.1.0
