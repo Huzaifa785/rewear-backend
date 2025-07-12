@@ -22,10 +22,13 @@ class Settings(BaseSettings):
     ALLOWED_EXTENSIONS: list = [".jpg", ".jpeg", ".png", ".gif", ".webp"]
     
     # Email
-    EMAIL_HOST: Optional[str] = None
-    EMAIL_PORT: int = 587
+    SMTP_SERVER: Optional[str] = None
+    SMTP_PORT: int = 587
     EMAIL_USERNAME: Optional[str] = None
     EMAIL_PASSWORD: Optional[str] = None
+    EMAIL_FROM: Optional[str] = None
+
+    FRONTEND_URL: Optional[str] = None
     
     # Environment
     ENVIRONMENT: str = "development"

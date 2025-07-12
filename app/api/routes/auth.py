@@ -1,3 +1,4 @@
+# app/api/routes/auth.py - Updated with welcome notifications
 from datetime import timedelta
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -7,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, get_db
 from app.core.security import create_access_token, get_password_hash, verify_password
 from app.core.utils import generate_username, award_points
+from app.core.websockets import notification_service
 from app.models import User
 from app.schemas import UserCreate, UserResponse, UserLogin, Token, UserUpdate
 from app.config import settings
@@ -15,12 +17,12 @@ router = APIRouter()
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def register_user(
+async def register_user(
     user_data: UserCreate,
     db: Session = Depends(get_db)
 ) -> Any:
     """
-    Register a new user
+    Register a new user with welcome notifications
     """
     # Check if user already exists
     existing_user = db.query(User).filter(
@@ -66,6 +68,14 @@ def register_user(
         description="Welcome bonus for joining ReWear",
         db=db
     )
+    
+    # 🎉 Send Welcome Notifications (WebSocket + Email)
+    try:
+        await notification_service.send_welcome_notification(user.id)
+        print(f"✅ Welcome notifications sent to {user.email}")
+    except Exception as e:
+        print(f"⚠️ Failed to send welcome notifications: {e}")
+        # Don't fail registration if notifications fail
     
     return user
 
@@ -208,3 +218,59 @@ def logout_user(
     Logout user (client should discard the token)
     """
     return {"message": "Successfully logged out"}
+
+
+# Additional endpoints for welcome email management
+@router.post("/resend-welcome")
+async def resend_welcome_email(
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Resend welcome email (for testing or if user didn't receive it)
+    """
+    try:
+        await notification_service.send_welcome_notification(current_user.id)
+        return {"message": "Welcome email resent successfully"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to send welcome email: {str(e)}"
+        )
+
+
+@router.post("/test-welcome-email")
+async def test_welcome_email(
+    test_email: str,
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Send test welcome email to specified address (for development)
+    """
+    if not settings.DEBUG:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Not available in production"
+        )
+    
+    try:
+        from app.services.email import email_service
+        
+        # Create a temporary user object for testing
+        test_user = User(
+            email=test_email,
+            username="test_user",
+            first_name="Test",
+            last_name="User"
+        )
+        
+        success = await email_service.send_welcome_email(test_user)
+        
+        return {
+            "message": f"Test welcome email sent to {test_email}",
+            "success": success
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to send test email: {str(e)}"
+        )
