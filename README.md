@@ -100,7 +100,6 @@ A sustainable fashion platform that enables users to exchange unused clothing th
 | **ORM** | SQLAlchemy 2.0 | Database abstraction and modeling |
 | **Authentication** | JWT + BCrypt | Secure user authentication |
 | **Validation** | Pydantic | Request/response validation |
-| **Cache** | Redis 7 | Session storage and performance optimization |
 | **Migrations** | Alembic | Database schema versioning |
 | **Development** | Docker Compose | Local service orchestration |
 
@@ -179,12 +178,7 @@ point_transactions (💰)
 - Admin moderation panel
 - Email notifications for important events
 
-### Phase 5: Production & Deployment
-- Comprehensive testing (unit, integration, API)
-- Performance optimization and caching strategies
-- Security hardening and rate limiting
-- CI/CD pipeline and deployment configuration
-- Monitoring, logging, and error tracking
+
 
 ## 🔧 Development
 
@@ -213,10 +207,7 @@ DATABASE_URL=postgresql+psycopg2://postgres:password@127.0.0.1:5432/rewear
 
 # Security
 SECRET_KEY=your-generated-secret-key
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-
-# Services
-REDIS_URL=redis://localhost:6379/0
+ACCESS_TOKEN_EXPIRE_MINUTES=2880
 
 # Development
 ENVIRONMENT=development
@@ -235,25 +226,7 @@ alembic revision --autogenerate -m "Description"
 alembic upgrade head
 ```
 
-## 🧪 Testing
 
-### Sample Data Creation
-```python
-# Create test users, categories, and items
-python -c "
-from app.database import get_db
-from app.models import User, Category, Item
-from app.core.security import get_password_hash
-
-# Create sample data for testing
-# (See full implementation in repository)
-"
-```
-
-### API Testing
-- **Health Check**: `GET /health`
-- **API Documentation**: Available at `/docs` with interactive testing
-- **Database Inspection**: pgAdmin UI at http://localhost:8080
 
 ## 🌱 Sustainability Impact
 
