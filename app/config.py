@@ -35,12 +35,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     
     # CORS
-    CORS_ORIGINS: list = [
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
-    ]
+    CORS_ORIGINS: list = ["*"]
     
     # Pagination
     DEFAULT_PAGE_SIZE: int = 20

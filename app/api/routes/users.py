@@ -119,7 +119,7 @@ def get_user_items(
     
     items = query.order_by(desc(Item.created_at)).offset(offset).limit(limit).all()
     
-    return items
+    return [ItemSummary.model_validate(item) for item in items]
 
 
 @router.get("/me/swaps", response_model=List[SwapSummary])
@@ -153,7 +153,7 @@ def get_user_swaps(
     
     swaps = query.order_by(desc(Swap.created_at)).offset(offset).limit(limit).all()
     
-    return swaps
+    return [SwapSummary.model_validate(swap) for swap in swaps]
 
 
 @router.get("/me/points", response_model=List[PointTransactionSummary])
@@ -174,7 +174,7 @@ def get_user_point_history(
     
     transactions = query.order_by(desc(PointTransaction.created_at)).offset(offset).limit(limit).all()
     
-    return transactions
+    return [PointTransactionSummary.model_validate(trans) for trans in transactions]
 
 
 @router.get("/{user_id}", response_model=UserPublic)
@@ -193,7 +193,7 @@ def get_user_public_profile(
             detail="User not found"
         )
     
-    return user
+    return UserPublic.model_validate(user)
 
 
 @router.get("/{user_id}/items", response_model=List[ItemSummary])
@@ -221,4 +221,4 @@ def get_user_public_items(
         Item.is_active == True
     ).order_by(desc(Item.created_at)).offset(offset).limit(limit).all()
     
-    return items
+    return [ItemSummary.model_validate(item) for item in items]

@@ -241,7 +241,7 @@ def get_trending_items(
     trending_query = db.query(
         Item,
         func.count(Swap.id).label('swap_count')
-    ).outerjoin(Swap).filter(
+    ).outerjoin(Swap, Item.id == Swap.item_id).filter(
         Item.status == ItemStatus.AVAILABLE.value,
         Item.is_active == True
     )
@@ -260,7 +260,7 @@ def get_trending_items(
     items = [result[0] for result in trending_items]
     
     return {
-        "trending_items": items,
+        "trending_items": [ItemPublic.model_validate(item) for item in items],
         "metadata": {
             "algorithm": "swap_activity_and_recency",
             "total_items": len(items)
@@ -341,7 +341,7 @@ def get_similar_items(
     ).limit(limit).all()
     
     return {
-        "similar_items": similar_items,
+        "similar_items": [ItemPublic.model_validate(item) for item in similar_items],
         "based_on": {
             "item_id": target_item.id,
             "category": target_item.category.name,

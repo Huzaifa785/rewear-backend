@@ -83,12 +83,13 @@ class SearchService:
         if shipping_available is not None:
             query = query.filter(Item.shipping_available == shipping_available)
         
-        # Tag filtering (assuming tags is stored as array or comma-separated)
+        # Tag filtering (tags is stored as PostgreSQL array)
         if tags:
+            from sqlalchemy.dialects.postgresql import ARRAY
             tag_conditions = []
             for tag in tags:
-                # Assuming tags are stored as JSON array or comma-separated string
-                tag_conditions.append(Item.tags.ilike(f"%{tag}%"))
+                # Use PostgreSQL array operations
+                tag_conditions.append(Item.tags.any(tag))
             query = query.filter(or_(*tag_conditions))
         
         # Text search with ranking
@@ -108,7 +109,7 @@ class SearchService:
                         Item.title.ilike(token_pattern),
                         Item.description.ilike(token_pattern),
                         Item.brand.ilike(token_pattern),
-                        Item.tags.ilike(token_pattern) if Item.tags else False
+                        Item.tags.any(token) if Item.tags else False
                     )
                     search_conditions.append(token_condition)
                     
@@ -117,6 +118,7 @@ class SearchService:
                         (Item.title.ilike(token_pattern), 3),  # Title match = 3 points
                         (Item.brand.ilike(token_pattern), 2),  # Brand match = 2 points
                         (Item.description.ilike(token_pattern), 1),  # Description = 1 point
+                        (Item.tags.any(token), 2),  # Tag match = 2 points (same as brand)
                         else_=0
                     )
                     rank_conditions.append(rank_condition)
@@ -208,8 +210,12 @@ class SearchService:
             "search_tokens": SearchService.normalize_search_query(search_query) if search_query else []
         }
         
+        # Convert SQLAlchemy models to Pydantic schemas
+        from app.schemas import ItemPublic
+        pydantic_items = [ItemPublic.model_validate(item) for item in items]
+        
         return {
-            "items": items,
+            "items": pydantic_items,
             "search_scores": search_scores,
             "total_count": total_count,
             "search_metadata": search_metadata

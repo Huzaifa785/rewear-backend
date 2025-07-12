@@ -226,7 +226,7 @@ def list_all_items(
         )
     
     items = query.order_by(desc(Item.created_at)).offset(offset).limit(limit).all()
-    return items
+    return [ItemResponse.model_validate(item) for item in items]
 
 
 @router.put("/items/{item_id}/approve")

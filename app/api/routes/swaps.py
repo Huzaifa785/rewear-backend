@@ -1,6 +1,6 @@
 # app/api/routes/swaps.py - Enhanced with real-time notifications
 from typing import Any, List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
@@ -100,7 +100,7 @@ async def create_swap_request(
         )
     
     # Create swap request
-    expires_at = datetime.utcnow() + timedelta(days=7)  # Expire in 7 days
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)  # Expire in 7 days
     
     swap = Swap(
         requester_id=current_user.id,
@@ -132,7 +132,7 @@ async def create_swap_request(
         }
     )
     
-    return swap
+    return SwapResponse.model_validate(swap)
 
 
 @router.put("/{swap_id}/accept", response_model=SwapResponse)
@@ -158,7 +158,7 @@ async def accept_swap(
         )
     
     # Check if swap hasn't expired
-    if swap.expires_at and datetime.utcnow() > swap.expires_at:
+    if swap.expires_at and datetime.now(timezone.utc) > swap.expires_at:
         swap.status = SwapStatus.EXPIRED.value
         db.commit()
         raise HTTPException(
@@ -169,7 +169,7 @@ async def accept_swap(
     # Update swap status
     swap.status = SwapStatus.ACCEPTED.value
     swap.owner_response = owner_response
-    swap.responded_at = datetime.utcnow()
+    swap.responded_at = datetime.now(timezone.utc)
     
     # Update item status
     item = swap.item
@@ -195,7 +195,7 @@ async def accept_swap(
         accepted=True
     )
     
-    return swap
+    return SwapResponse.model_validate(swap)
 
 
 @router.put("/{swap_id}/reject", response_model=SwapResponse)
@@ -223,7 +223,7 @@ async def reject_swap(
     # Update swap status
     swap.status = SwapStatus.REJECTED.value
     swap.owner_response = owner_response
-    swap.responded_at = datetime.utcnow()
+    swap.responded_at = datetime.now(timezone.utc)
     
     db.commit()
     db.refresh(swap)
@@ -241,7 +241,7 @@ async def reject_swap(
         accepted=False
     )
     
-    return swap
+    return SwapResponse.model_validate(swap)
 
 
 @router.put("/{swap_id}/complete", response_model=SwapResponse)
@@ -267,7 +267,7 @@ async def complete_swap(
     
     # Complete the swap
     swap.status = SwapStatus.COMPLETED.value
-    swap.completed_at = datetime.utcnow()
+    swap.completed_at = datetime.now(timezone.utc)
     
     # Update item statuses
     item = swap.item
@@ -363,7 +363,7 @@ async def complete_swap(
             reason=f"Completed swap of '{item.title}'"
         )
     
-    return swap
+    return SwapResponse.model_validate(swap)
 
 
 @router.get("/", response_model=List[SwapResponse])
@@ -397,7 +397,7 @@ def list_user_swaps(
     
     swaps = query.order_by(Swap.created_at.desc()).offset(offset).limit(limit).all()
     
-    return swaps
+    return [SwapResponse.model_validate(swap) for swap in swaps]
 
 
 @router.get("/{swap_id}", response_model=SwapResponse)
@@ -424,7 +424,7 @@ def get_swap(
             detail="Not authorized to view this swap"
         )
     
-    return swap
+    return SwapResponse.model_validate(swap)
 
 
 @router.put("/{swap_id}/cancel", response_model=SwapResponse)
@@ -466,7 +466,7 @@ async def cancel_swap(
         accepted=False  # Cancellation is treated as a negative response
     )
     
-    return swap
+    return SwapResponse.model_validate(swap)
 
 
 @router.get("/stats/summary")
