@@ -43,7 +43,8 @@ async def startup_event():
     if not db_status:
         raise HTTPException(status_code=500, detail="Database connection failed")
     if not redis_status:
-        print("⚠️  Redis connection failed, some features may not work")
+        print("⚠️  Redis connection failed, caching features will be disabled")
+        print("📝 Note: This is okay for development, we'll add caching later")
 
 
 @app.get("/")
@@ -86,12 +87,12 @@ async def health_check():
     return JSONResponse(content=health_status, status_code=status_code)
 
 
-# Import and include API routes (we'll add these next)
-# from app.api.routes import auth, users, items, admin
-# app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
-# app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
-# app.include_router(items.router, prefix="/api/v1/items", tags=["Items"])
-# app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
+# Import and include API routes
+from app.api.routes import auth, users, items, swaps
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
+app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
+app.include_router(items.router, prefix="/api/v1/items", tags=["Items"])
+app.include_router(swaps.router, prefix="/api/v1/swaps", tags=["Swaps"])
 
 
 if __name__ == "__main__":
