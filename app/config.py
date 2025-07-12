@@ -22,22 +22,20 @@ class Settings(BaseSettings):
     ALLOWED_EXTENSIONS: list = [".jpg", ".jpeg", ".png", ".gif", ".webp"]
     
     # Email
-    EMAIL_HOST: Optional[str] = None
-    EMAIL_PORT: int = 587
+    SMTP_SERVER: Optional[str] = None
+    SMTP_PORT: int = 587
     EMAIL_USERNAME: Optional[str] = None
     EMAIL_PASSWORD: Optional[str] = None
+    EMAIL_FROM: Optional[str] = None
+
+    FRONTEND_URL: Optional[str] = None
     
     # Environment
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
     
     # CORS
-    CORS_ORIGINS: list = [
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
-    ]
+    CORS_ORIGINS: list = ["*"]
     
     # Pagination
     DEFAULT_PAGE_SIZE: int = 20
